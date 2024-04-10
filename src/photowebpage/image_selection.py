@@ -7,6 +7,8 @@ import os
 from PIL import Image
 from typing import Tuple, List, Union, NoReturn, Callable
 
+handled_image_extensions : List[str] = ['JPG', 'JPEG', 'PNG']
+
 
 def _adjusted_img_size(current_width : int, current_height : int, max_width : int = 900, max_height : int = 900) -> Tuple[int, int]:
    """
@@ -21,20 +23,29 @@ def _adjusted_img_size(current_width : int, current_height : int, max_width : in
       return current_width, current_height
 
 
-def find_images(path : str, extensions_uppercase : List[str] = ['JPG', 'JPEG', 'PNG']) -> List[str]:
+def find_images(paths : Union[List[str], str], image_extensions_uppercase : List[str] = handled_image_extensions) -> List[str]:
     """
     Find image files in path with one of the given file extensions.
-    @return the absolute paths to the images. The returned files existed when this function checked for existance. This of course does not imply that they still exist when the function returns.
+    @param paths List of one or more directories to search for images. The search is not recursive.
+    @param image_extensions_uppercase List of uppercase image file extensions to include. Typically something like ```['JPG', 'JPEG', 'PNG']```.
+    @return the absolute paths to the detected images. The returned files existed when this function checked for existance. This of course does not imply that they still exist when the function returns.
     """
     images : List[str] = []
-    for img in os.listdir(path):
-      fullname : str = os.path.join(path, img)
-      if os.path.isfile(fullname):
-         _, img_ext = os.path.splitext(img)
-         if len(img_ext) > 0:
-            img_ext = img_ext[1:].upper()
-            if img_ext in extensions_uppercase:
-                images.append(fullname)
+
+    if type(paths) is not list:
+       paths = [paths]
+
+    for path in paths:
+      path = os.path.abspath(path)
+      for img in os.listdir(path):
+         fullname : str = os.path.join(path, img)
+         if os.path.isfile(fullname):
+            _, img_ext = os.path.splitext(img)
+            if len(img_ext) > 0:
+               img_ext = img_ext[1:].upper()
+               if img_ext in image_extensions_uppercase:
+                  images.append(fullname)
+
     return images
 
 
@@ -53,7 +64,7 @@ def scale_images(image_paths : List[str], outdir : str, max_width : int = 900, m
 def _get_output_path(img_input_path, outdir : str, overwrite : bool = False) -> str:
     if overwrite and outdir is not None:
       raise ValueError("scale_images: If 'overwrite' is True, outdir must be set to None.")
-     if outdir is None and not overwrite:
+    if outdir is None and not overwrite:
       raise ValueError("scale_images: If 'overwrite' is False, outdir must not be None.")
 
     img_filename = os.path.basename(img_input_path)
