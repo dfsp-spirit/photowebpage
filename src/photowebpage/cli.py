@@ -6,6 +6,8 @@ import argparse
 from typing import List
 
 from photowebpage.image_selection import find_images, handled_image_extensions
+from photowebpage.html_generator import gen_full_webpage
+from photowebpage.common import outhtml_filename
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +51,14 @@ def main():
     image_filenames : List[str] = find_images([indir])
     logger.info(f"Found {len(image_filenames)} image files in directory '{indir}' with uppercased extensions '{handled_image_extensions}'.")
 
+    if not len(image_filenames) > 0:
+        logger.warning("No images found, please check the input directory setting.")
+
+    webpage : str = gen_full_webpage(image_filenames)
+    output_html_file = os.path.join(outdir, outhtml_filename)
+    with open(output_html_file, "w") as text_file:
+        text_file.write(webpage)
+    logger.info(f"Web gallery page for {len(image_filenames)} images written to file '{output_html_file}'")
 
 if __name__ == "__main__":
     main()
