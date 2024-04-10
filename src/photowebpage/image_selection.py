@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 import os
 from PIL import Image
 from typing import Tuple, List, Union, NoReturn, Callable
+from photowebpage.common import img_height_max, img_width_max
 
 handled_image_extensions : List[str] = ['JPG', 'JPEG', 'PNG']
 
@@ -23,17 +24,14 @@ def _adjusted_img_size(current_width : int, current_height : int, max_width : in
       return current_width, current_height
 
 
-def find_images(paths : Union[List[str], str], image_extensions_uppercase : List[str] = handled_image_extensions) -> List[str]:
+def find_images(paths : List[str], image_extensions_uppercase : List[str] = handled_image_extensions) -> List[str]:
     """
     Find image files in path with one of the given file extensions.
     @param paths List of one or more directories to search for images. The search is not recursive.
     @param image_extensions_uppercase List of uppercase image file extensions to include. Typically something like ```['JPG', 'JPEG', 'PNG']```.
-    @return the absolute paths to the detected images. The returned files existed when this function checked for existance. This of course does not imply that they still exist when the function returns.
+    @return list of the absolute paths to the detected images. The returned files existed when this function checked for existance. This of course does not imply that they still exist when the function returns.
     """
     images : List[str] = []
-
-    if type(paths) is not list:
-       paths = [paths]
 
     for path in paths:
       path = os.path.abspath(path)
@@ -49,25 +47,49 @@ def find_images(paths : Union[List[str], str], image_extensions_uppercase : List
     return images
 
 
-def scale_images(image_paths : List[str], outdir : str, max_width : int = 900, max_height : int = 900 , overwrite = False) -> NoReturn:
+def scale_images(image_paths : List[str], image_output_paths : List[str], max_width : int = img_width_max, max_height : int = img_height_max) -> NoReturn:
 
+   if len(image_paths) != len(image_output_paths):
+      raise ValueError(f"Length of image_paths does not match length of image_output_paths.")
 
-   for img_path in image_paths:
-    img_out_path = _get_output_path(img_path, outdir, overwrite)
-
+   for idx, img_path in enumerate(image_paths):
     image = Image.open(img_path)
     width, height = image.size
     image = image.resize(_adjusted_img_size(width, height, max_width, max_height))
-    image.save(img_out_path)
+    image.save(image_output_paths[idx])
 
 
-def _get_output_path(img_input_path, outdir : str, overwrite : bool = False) -> str:
-    if overwrite and outdir is not None:
-      raise ValueError("scale_images: If 'overwrite' is True, outdir must be set to None.")
-    if outdir is None and not overwrite:
-      raise ValueError("scale_images: If 'overwrite' is False, outdir must not be None.")
+def get_output_paths(img_input_paths : List[str], outdir : Union[str, None], overwrite : bool = False, suffix : Union[str, None] = None, prefix : Union[str, None] = None) -> str:
+   """
+   Determine output path for image, given input image and outdir or suffix.
+   @param img_input_path: Paths to input images
+   @param outdir: Output directory
+   @param overwrite: Whether to overwrite the input file, i.e., simply return the img_input_path.
+   @param suffix: A suffix to add to the filename, before the file extension, to make the output file different from the input file, if they both go into the same directory but you do not want to overwrite them. E.g., "_thumb" will turn the output for input "my_image.jpg" to "my_image_thumb.jpg".
+   @param prefix: A prefix to add to the filename, to make the output file different from the input file, if they both go into the same directory but you do not want to overwrite them. E.g., "thumb_" will turn the output for input "my_image.jpg" to "thumb_my_image.jpg".
+   @return list of output paths
+   """
+   if overwrite and (outdir is not None or suffix is not None or prefix is not None):
+      raise ValueError("scale_images: If 'overwrite' is True, outdir, prefix and suffix must be set to None.")
 
-    img_filename = os.path.basename(img_input_path)
-    img_out_path = img_input_path if overwrite else os.path.join(outdir, img_filename)
-    return img_out_path
+   if outdir is None and suffix is None and prefix is None and not overwrite:
+      raise ValueError("scale_images: If 'overwrite' is False, one of outdir, prefix or suffix must not be None.")
+
+   out_paths = []
+
+   for img_input_path in img_input_paths:
+
+      img_filename = os.path.basename(img_input_path)
+
+      if suffix:
+         img_name, img_ext = os.path.splitext(img_filename)
+         img_filename = img_name + suffix + img_ext
+
+      if prefix:
+         img_filename = prefix + img_filename
+
+      img_out_path = img_input_path if overwrite else os.path.join(outdir, img_filename)
+      out_paths.append(img_out_path)
+
+   return out_paths
 

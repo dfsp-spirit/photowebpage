@@ -2,7 +2,7 @@
 from typing import List, Union
 import os
 import logging
-from photowebpage.common import outdir_subdir_img, outdir_subdir_html, outdir_subdir_thumbnails
+from photowebpage.common import outdir_subdir_img, outdir_subdir_thumbnails
 
 logger = logging.getLogger(__name__)
 
