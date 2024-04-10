@@ -9,7 +9,7 @@ version = "0.1.0"
 authors = [
     {name = "Tim Schaefer", email="ts+code@rcmd.org"}
 ]
-description="Generate a simple, static HTML page that displays all images in a folder."
+description="Generate a simple, static HTML page with an image gallery that displays all images in a folder."
 readme = "README.md"
 keywords = ["webpage", "photos", "images", "HTML"]
 license = {file = "LICENSE"}
@@ -35,4 +35,4 @@ documentation = "https://github.com/dfsp-spirit/photowebpage"
 repository = "https://github.com/dfsp-spirit/photowebpage"
 
 [project.scripts]
-seq_gfz = "photowebpage.cli:main"
+photogallery = "photowebpage.cli:main"
