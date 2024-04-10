@@ -3,7 +3,7 @@
 import os
 import logging
 
-from image_selection import find_images
+from photowebpage.image_selection import find_images
 
 logger = logging.getLogger(__name__)
 
