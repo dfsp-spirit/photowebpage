@@ -2,7 +2,7 @@
 from typing import List, Union
 import os
 import logging
-from photowebpage.common import outdir_subdir_img, outdir_subdir_html
+from photowebpage.common import outdir_subdir_img, outdir_subdir_html, outdir_subdir_thumbnails
 
 logger = logging.getLogger(__name__)
 
@@ -33,22 +33,22 @@ def get_html_page(title : str, body : str, template=template) -> str:
     return page
 
 
-def gen_gallery_html(images : List[str], thumbnails : Union[List[str], None] = None, image_subdir : str = outdir_subdir_img) -> str:
+def gen_gallery_html(images : List[str], thumbnails : Union[List[str], None] = None, image_subdir : str = outdir_subdir_img, thumbnail_subdir : str = outdir_subdir_thumbnails) -> str:
     """
     Generate the HTML for the gallery from the list of webready images.
-    @param images: List of image file names. The images should be ready for the web, i.e., scaled and converted to a suitable format that browser can display. A suitable compression level, if supported by the format, may also come in handy.
+    @param images: List of image file names. Note that the basename will be used, so you can provide a full or relative path, but the path part will be ignored, because it is assumed that images are stored directly in ```image_subdir```. The images should be ready for the web, i.e., scaled and converted to a suitable format that browser can display. A suitable compression level, if supported by the format, may also come in handy.
     """
     if thumbnails is not None:
         if len(thumbnails) != len(images):
             raise ValueError(f"Length of images and thumbnails must match. Pass None for thumbnails list if you do not have any.")
     outstr = ""
     for idx, img in enumerate(images):
-        img_path = os.path.join(image_subdir, img)
+        img_path_rel = os.path.join(image_subdir, os.path.basename(img))  # Image path relative to location of generated HTML file.
         if thumbnails:
-            thumb_path = os.path.join(image_subdir, thumbnails[idx])
-            outstr += "<a href='" + img_path + "'>" + _img_tag(thumb_path) + "</a>" + "\n"
+            thumb_path = os.path.join(thumbnail_subdir, os.path.basename(thumbnails[idx]))
+            outstr += "<a href='" + img_path_rel + "'>" + _img_tag(thumb_path) + "</a>" + "\n"
         else:
-            outstr += _img_tag(img_path) + "\n"
+            outstr += _img_tag(img_path_rel) + "\n"
     return outstr
 
 def _img_tag(imgpath : str) -> str:
