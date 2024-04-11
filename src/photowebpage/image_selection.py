@@ -7,7 +7,7 @@ import os
 import PIL
 import math
 from PIL import Image
-from typing import Tuple, List, Union, NoReturn, Callable
+from typing import Tuple, List, Union, NoReturn, Callable, Dict
 from photowebpage.common import img_height_max, img_width_max
 
 handled_image_extensions : List[str] = ['JPG', 'JPEG', 'PNG']
@@ -50,22 +50,33 @@ def find_images(paths : List[str], image_extensions_uppercase : List[str] = hand
 
 
 def _calculate_aspect(width: int, height: int) -> Tuple[int, int]:
+    """
+    Calculate aspect ration of an image with the given width and height. E.g., 1920x1080 => (16, 9).
+    """
     r = math.gcd(width, height)
-    x = int(width / r)
-    y = int(height / r)
+    x : int = int(width / r)
+    y : int = int(height / r)
     return x, y
 
 
-def sort_filenames_by_aspect_ratio(image_paths : List[str]):
-   image_paths_sorted : List[str] = []
-   aspect_ratios : List[Tuple[int, int]] = []
+def sort_filenames_by_aspect_ratio(image_paths : List[str]) -> List[str]:
+   """
+   Sort image filenames by aspect ratio of the image. Useful for the gallery because it looks bad if there is a random order of portrait format and landscape format images in the gallery. It looks much better if all portrait format images are followed by all landscape format images, or vice versa.
+   @param image_paths: list of input image filenames. The images will be opened to check for dimensions and compute their aspect ratio, so the filenames must be valid image files.
+   @return list of image filenames, containing the filenames from image_paths, but (potentially) in a different order.
+   """
+   images : List[Dict[str, str]] = []
 
    for img_path in image_paths:
       image = Image.open(img_path)
       width, height = image.size
-      aspect_ratios.append(_calculate_aspect(width, height))
+      aspect_ratio : Tuple[int, int] = _calculate_aspect(width, height)
+      images.append({"img_path" : img_path, "aspect_ratio" : aspect_ratio})
 
-   return image_paths_sorted
+   images.sort(key=lambda x: x['aspect_ratio'][0])  # Sort by width
+   images.sort(key=lambda x: x['aspect_ratio'][1])  # Sort by height
+
+   return [i["img_path"] for i in images]
 
 
 def scale_images(image_paths : List[str], image_output_paths : List[str], max_width : int = img_width_max, max_height : int = img_height_max) -> None:

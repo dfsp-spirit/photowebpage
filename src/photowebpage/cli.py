@@ -5,7 +5,7 @@ import logging
 import argparse
 from typing import List, Dict
 
-from photowebpage.image_selection import find_images, handled_image_extensions, get_output_paths, scale_images
+from photowebpage.image_selection import find_images, handled_image_extensions, get_output_paths, scale_images, sort_filenames_by_aspect_ratio
 from photowebpage.html_generator import gen_full_webpage
 from photowebpage.common import outhtml_filename, outdir_subdir_img, outdir_subdir_thumbnails, img_height_max, img_width_max, thumbnail_img_width_max, thumbnail_img_height_max
 
@@ -27,6 +27,7 @@ def main():
     indir : str = os.path.abspath(args.imgdir)
     outdir : str = os.path.abspath(args.outdir)
     use_thumbnails : bool = args.thumbnails
+    do_sort_by_aspect_ratio : bool = True
 
 
     thumbnail_width_max = thumbnail_img_width_max
@@ -45,6 +46,7 @@ def main():
     outsubdirs : Dict[str, str] = { 'images' : os.path.join(outdir, outdir_subdir_img) }
 
     logger.info(f"Using full images for the web with dimension ({img_width_max}, {img_height_max}).")
+
     if use_thumbnails:
         outsubdirs['thumbnails'] = os.path.join(outdir, outdir_subdir_thumbnails)
         logger.info(f"Using thumbnails with dimension ({thumbnail_width_max}, {thumbnail_height_max}).")
@@ -60,6 +62,10 @@ def main():
 
     image_filenames : List[str] = find_images([indir])
     logger.info(f"Found {len(image_filenames)} image files in directory '{indir}' with uppercased extensions '{handled_image_extensions}'.")
+
+    if do_sort_by_aspect_ratio:
+        logger.info("Sorting the images by aspect ratio.")
+        image_filenames = sort_filenames_by_aspect_ratio(image_filenames)
 
     if not len(image_filenames) > 0:
         logger.warning("No images found, please check the input directory setting.")
