@@ -5,6 +5,7 @@ logger = logging.getLogger(__name__)
 
 import os
 import PIL
+import math
 from PIL import Image
 from typing import Tuple, List, Union, NoReturn, Callable
 from photowebpage.common import img_height_max, img_width_max
@@ -48,7 +49,14 @@ def find_images(paths : List[str], image_extensions_uppercase : List[str] = hand
     return images
 
 
-def sort_filenames_by_image_dims(image_paths : List[str]):
+def _calculate_aspect(width: int, height: int) -> str:
+    r = math.gcd(width, height)
+    x = int(width / r)
+    y = int(height / r)
+    return f"{x}:{y}"
+
+
+def sort_filenames_by_aspect_ratio(image_paths : List[str]):
    image_paths_sorted : List[str] = []
 
    for img_path in image_paths:
