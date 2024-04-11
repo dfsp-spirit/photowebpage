@@ -48,7 +48,7 @@ def find_images(paths : List[str], image_extensions_uppercase : List[str] = hand
     return images
 
 
-def scale_images(image_paths : List[str], image_output_paths : List[str], max_width : int = img_width_max, max_height : int = img_height_max) -> NoReturn:
+def scale_images(image_paths : List[str], image_output_paths : List[str], max_width : int = img_width_max, max_height : int = img_height_max) -> None:
    """
    Create a scaled copy of the input images and save them in the output paths.
    @param image_paths: list of str, paths to the input images.
@@ -65,8 +65,6 @@ def scale_images(image_paths : List[str], image_output_paths : List[str], max_wi
       w, h = _adjusted_img_size(width, height, max_width, max_height)
       image = image.resize((w, h))
       image.save(image_output_paths[idx])
-
-   return len(image_paths)
 
 
 def get_output_paths(img_input_paths : List[str], outdir : Union[str, None], overwrite : bool = False, suffix : Union[str, None] = None, prefix : Union[str, None] = None) -> str:

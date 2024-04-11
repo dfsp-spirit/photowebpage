@@ -7,7 +7,7 @@ from typing import List, Dict
 
 from photowebpage.image_selection import find_images, handled_image_extensions, get_output_paths, scale_images
 from photowebpage.html_generator import gen_full_webpage
-from photowebpage.common import outhtml_filename, outdir_subdir_html, outdir_subdir_img, outdir_subdir_thumbnails
+from photowebpage.common import outhtml_filename, outdir_subdir_img, outdir_subdir_thumbnails, img_height_max, img_width_max, thumbnail_img_width_max, thumbnail_img_height_max
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +28,10 @@ def main():
     outdir : str = os.path.abspath(args.outdir)
     use_thumbnails : bool = args.thumbnails
 
+
+    thumbnail_width_max = thumbnail_img_width_max
+    thumbnail_height_max = thumbnail_img_height_max
+
     if not os.path.isdir(indir):
         parser.error(f"Input image directory '{indir}' does not exist or is not accessible. Please check.")
 
@@ -40,8 +44,12 @@ def main():
 
     outsubdirs : Dict[str, str] = { 'images' : os.path.join(outdir, outdir_subdir_img) }
 
+    logger.info(f"Using full images for the web with dimension ({img_width_max}, {img_height_max}).")
     if use_thumbnails:
         outsubdirs['thumbnails'] = os.path.join(outdir, outdir_subdir_thumbnails)
+        logger.info(f"Using thumbnails with dimension ({thumbnail_width_max}, {thumbnail_height_max}).")
+    else:
+        logger.info(f"Not using thumbnails.")
 
     for subdirname in outsubdirs.keys():
         sub_outdir = outsubdirs.get(subdirname)
@@ -57,11 +65,11 @@ def main():
         logger.warning("No images found, please check the input directory setting.")
 
     web_image_filenames : List[str] = get_output_paths(image_filenames, outdir=outsubdirs["images"])
-    scale_images(image_filenames, web_image_filenames, max_width=900, max_height=900)
+    scale_images(image_filenames, web_image_filenames, max_width=img_width_max, max_height=img_height_max)
 
     if use_thumbnails:
         web_thumbnail_filenames : List[str] = get_output_paths(image_filenames, outdir=outsubdirs["images"], prefix="thumbnail_")
-        scale_images(image_filenames, web_thumbnail_filenames, max_width=900, max_height=900)
+        scale_images(image_filenames, web_thumbnail_filenames, max_width=thumbnail_width_max, max_height=thumbnail_height_max)
 
     webpage : str = gen_full_webpage(image_filenames)
     output_html_file = os.path.join(outdir, outhtml_filename)
