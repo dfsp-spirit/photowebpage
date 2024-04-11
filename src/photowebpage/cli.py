@@ -5,8 +5,7 @@ import logging
 import argparse
 from typing import List, Dict
 
-from photowebpage.image_selection import find_images
-from photowebpage.image_selection import find_images, handled_image_extensions
+from photowebpage.image_selection import find_images, handled_image_extensions, get_output_paths, scale_images
 from photowebpage.html_generator import gen_full_webpage
 from photowebpage.common import outhtml_filename, outdir_subdir_html, outdir_subdir_img, outdir_subdir_thumbnails
 
@@ -39,24 +38,30 @@ def main():
 
     logger.info(f"Using input dir '{indir}' and output dir '{outdir}'.")
 
-    outsubdirs : Dict[str, str] = { 'html' : os.path.join(outdir, outdir_subdir_html),
-                                    'images' : os.path.join(outdir, outdir_subdir_img) }
+    outsubdirs : Dict[str, str] = { 'images' : os.path.join(outdir, outdir_subdir_img) }
 
     if use_thumbnails:
         outsubdirs['thumbnails'] = os.path.join(outdir, outdir_subdir_thumbnails)
 
     for subdirname in outsubdirs.keys():
-        outdir = outsubdirs.get(subdirname)
-        if not os.path.isdir(outdir):
-            os.mkdir(outdir)
+        sub_outdir = outsubdirs.get(subdirname)
+        if not os.path.isdir(sub_outdir):
+            os.mkdir(sub_outdir)
         else:
-            logger.info(f"Output {subdirname} directory '{outdir}' already exists.")
+            logger.info(f"Output {subdirname} directory '{sub_outdir}' already exists.")
 
     image_filenames : List[str] = find_images([indir])
     logger.info(f"Found {len(image_filenames)} image files in directory '{indir}' with uppercased extensions '{handled_image_extensions}'.")
 
     if not len(image_filenames) > 0:
         logger.warning("No images found, please check the input directory setting.")
+
+    web_image_filenames : List[str] = get_output_paths(image_filenames, outdir=outsubdirs["images"])
+    scale_images(image_filenames, web_image_filenames, max_width=900, max_height=900)
+
+    if use_thumbnails:
+        web_thumbnail_filenames : List[str] = get_output_paths(image_filenames, outdir=outsubdirs["images"], prefix="thumbnail_")
+        scale_images(image_filenames, web_thumbnail_filenames, max_width=900, max_height=900)
 
     webpage : str = gen_full_webpage(image_filenames)
     output_html_file = os.path.join(outdir, outhtml_filename)

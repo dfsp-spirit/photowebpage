@@ -4,6 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import os
+import PIL
 from PIL import Image
 from typing import Tuple, List, Union, NoReturn, Callable
 from photowebpage.common import img_height_max, img_width_max
@@ -48,15 +49,24 @@ def find_images(paths : List[str], image_extensions_uppercase : List[str] = hand
 
 
 def scale_images(image_paths : List[str], image_output_paths : List[str], max_width : int = img_width_max, max_height : int = img_height_max) -> NoReturn:
-
+   """
+   Create a scaled copy of the input images and save them in the output paths.
+   @param image_paths: list of str, paths to the input images.
+   @param image_output_paths: list of str, paths where to write the output images. Length must match that of image_paths. You can construct them using the ```get_output_paths``` function.
+   @param max_width: maximal width of scaled image, in pixels
+   @param max_height: maximal height of scaled image, in pixels
+   """
    if len(image_paths) != len(image_output_paths):
       raise ValueError(f"Length of image_paths does not match length of image_output_paths.")
 
    for idx, img_path in enumerate(image_paths):
-    image = Image.open(img_path)
-    width, height = image.size
-    image = image.resize(_adjusted_img_size(width, height, max_width, max_height))
-    image.save(image_output_paths[idx])
+      image = Image.open(img_path)
+      width, height = image.size
+      w, h = _adjusted_img_size(width, height, max_width, max_height)
+      image = image.resize((w, h))
+      image.save(image_output_paths[idx])
+
+   return len(image_paths)
 
 
 def get_output_paths(img_input_paths : List[str], outdir : Union[str, None], overwrite : bool = False, suffix : Union[str, None] = None, prefix : Union[str, None] = None) -> str:
