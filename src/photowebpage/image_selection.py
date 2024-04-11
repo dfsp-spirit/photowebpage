@@ -49,19 +49,21 @@ def find_images(paths : List[str], image_extensions_uppercase : List[str] = hand
     return images
 
 
-def _calculate_aspect(width: int, height: int) -> str:
+def _calculate_aspect(width: int, height: int) -> Tuple[int, int]:
     r = math.gcd(width, height)
     x = int(width / r)
     y = int(height / r)
-    return f"{x}:{y}"
+    return x, y
 
 
 def sort_filenames_by_aspect_ratio(image_paths : List[str]):
    image_paths_sorted : List[str] = []
+   aspect_ratios : List[Tuple[int, int]] = []
 
    for img_path in image_paths:
       image = Image.open(img_path)
       width, height = image.size
+      aspect_ratios.append(_calculate_aspect(width, height))
 
    return image_paths_sorted
 
