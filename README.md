@@ -1,5 +1,5 @@
 # photowebpage
-A simple Python script to generate a static HTML page that displays all images in a directory. Intended for my personal use only. Ignore this.
+A simple Python script and command line application to generate a static HTML page that displays all images in a directory in a web gallery. Intended for my personal use only. Ignore this.
 
 
 ## Installation
@@ -21,9 +21,17 @@ source bin/activate
 pip install -e .
 ```
 
+You now have the ```photogallery``` command available. See the next section for information on how to use it.
 
 ## Usage
+
+Type ```photogallery``` to see basic usage information.
+
+An example command to search for images in the directory ```/testdata/input/chile```and write the output gallery to the directory ```./testdata/out``` would be:
 
 ```shell
 photogallery --outdir ./testdata/out --thumbnails  ./testdata/input/chile
 ```
+
+If you do not want thumbnails in the gallery, but want the full sized images in there directly, omit the ```--thumbnails```part of the command.
+
