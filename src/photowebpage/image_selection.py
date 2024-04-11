@@ -48,6 +48,16 @@ def find_images(paths : List[str], image_extensions_uppercase : List[str] = hand
     return images
 
 
+def sort_filenames_by_image_dims(image_paths : List[str]):
+   image_paths_sorted : List[str] = []
+
+   for img_path in image_paths:
+      image = Image.open(img_path)
+      width, height = image.size
+
+   return image_paths_sorted
+
+
 def scale_images(image_paths : List[str], image_output_paths : List[str], max_width : int = img_width_max, max_height : int = img_height_max) -> None:
    """
    Create a scaled copy of the input images and save them in the output paths.
