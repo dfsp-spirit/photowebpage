@@ -71,10 +71,19 @@ def sort_filenames_by_aspect_ratio(image_paths : List[str]) -> List[str]:
       image = Image.open(img_path)
       width, height = image.size
       aspect_ratio : Tuple[int, int] = _calculate_aspect(width, height)
-      images.append({"img_path" : img_path, "aspect_ratio" : aspect_ratio})
+      images.append({"img_path" : img_path, "aspect_ratio" : aspect_ratio, "width" : width, "height" : height})
 
    images.sort(key=lambda x: x['aspect_ratio'][0])  # Sort by width
-   images.sort(key=lambda x: x['aspect_ratio'][1])  # Sort by height
+   images.sort(key=lambda x: x['aspect_ratio'][1])  # Sort by height within width order, works due to stable sort
+
+   if logger.isEnabledFor(logging.INFO):
+      aspect_ratios = [i["aspect_ratio"] for i in images]
+      unique_aspect_rations = list(set(aspect_ratios))
+      logger.info(f"The {len(image_paths)} images have {len(unique_aspect_rations)} different aspect ratios: {unique_aspect_rations}.")
+
+   if logger.isEnabledFor(logging.DEBUG):
+      for img in images:
+         logger.debug(f"Image '{img.get('img_path')}' has dimension ({img.get('width')}, {img.get('height')}) and aspect ratio {img.get('aspect_ratio')[0]}:{img.get('aspect_ratio')[1]}.")
 
    return [i["img_path"] for i in images]
 
