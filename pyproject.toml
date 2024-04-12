@@ -27,7 +27,7 @@ classifiers=[
         "Natural Language :: English",
 ]
 
-dependencies = ["pillow"]
+dependencies = ["pillow", "pytest"]
 
 [project.urls]
 homepage = "https://github.com/dfsp-spirit/photowebpage"
