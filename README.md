@@ -1,5 +1,12 @@
 # photowebpage
-A simple Python script and command line application to generate a static HTML page that displays all images in a directory in a web gallery. Intended for my personal use only. Ignore this.
+A simple Python script and command line application to generate a static HTML gallery page that displays all images in a directory in a web gallery. Intended for my personal use only. Ignore this.
+
+## Features
+
+* Implemented as a command line application
+* Can scan a directory for suitable images, and one can apply some basic filters to use only a subset of the images in the target directory, e.g., filter by file formats or require a minimum size.
+* Can generate thumbnails if requested, and show these thumbnails in the gallery (as links to the full-size images)
+* Some simple convenience features, like sorting the images by aspect ratio in the output gallery (e.g., first all portrait orientation images, then all landscape orientation images)
 
 
 ## Installation
