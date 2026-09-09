@@ -6,8 +6,9 @@ photowebpage.cli
 
 Command line interface of the photowebpage package.
 
-This module implements the ```photogallery``` command, which scans a directory
-for images and generates a static HTML gallery page from them.
+This module implements the ```photogallery``` command (```main```) and exposes
+the underlying ```generate_gallery``` function, which scans a directory for
+images and generates a static HTML gallery page from them.
 """
 
 import os
@@ -40,10 +41,8 @@ def main():
     """
     Run the photogallery command line application.
 
-    Parses the command line arguments, scans the input directory for images,
-    optionally sorts them by aspect ratio, creates web-ready (and, if
-    requested, thumbnail) copies of them, and writes the static HTML gallery
-    page to the output directory.
+    Parses the command line arguments and delegates the actual gallery
+    generation to ```generate_gallery```.
     """
     parser = argparse.ArgumentParser(
         description="Generate a static web page with an image gallery from a directory of images."
@@ -69,21 +68,44 @@ def main():
 
     args = parser.parse_args()
 
-    indir: str = os.path.abspath(args.imgdir)
-    outdir: str = os.path.abspath(args.outdir)
-    use_thumbnails: bool = args.thumbnails
-    do_sort_by_aspect_ratio: bool = True
+    try:
+        generate_gallery(
+            indir=args.imgdir,
+            outdir=args.outdir,
+            use_thumbnails=args.thumbnails,
+        )
+    except ValueError as err:
+        parser.error(str(err))
 
-    thumbnail_width_max = thumbnail_img_width_max
-    thumbnail_height_max = thumbnail_img_height_max
+
+def generate_gallery(
+    indir: str,
+    outdir: str,
+    use_thumbnails: bool = True,
+    do_sort_by_aspect_ratio: bool = True,
+) -> str:
+    """
+    Generate a static HTML gallery page from all images in the input directory and write it to the output directory.
+
+    The images are copied (and scaled down, if necessary) into subdirectories of the output directory so that they are ready for the web. If ```use_thumbnails``` is True, smaller thumbnail copies are created as well and shown in the gallery, linking to the full-size web images.
+
+    @param indir: Directory containing the input images.
+    @param outdir: An existing, writeable output directory. The HTML page and the web-ready images and thumbnails will be placed in this folder.
+    @param use_thumbnails: Whether to generate and use thumbnails. If True, the gallery shows thumbnails that link to the full-size web images; if False, the full-size web images are shown directly.
+    @param do_sort_by_aspect_ratio: Whether to sort the images by aspect ratio in the gallery (all portrait images first, then landscape images).
+    @return absolute path to the generated HTML file.
+    @raise ValueError if the input or the output directory does not exist.
+    """
+    indir = os.path.abspath(indir)
+    outdir = os.path.abspath(outdir)
 
     if not os.path.isdir(indir):
-        parser.error(
+        raise ValueError(
             f"Input image directory '{indir}' does not exist or is not accessible. Please check."
         )
 
     if not os.path.isdir(outdir):
-        parser.error(
+        raise ValueError(
             f"Output directory '{outdir}' does not exist or is not accessible. Please check."
         )
     if not os.access(outdir, os.W_OK | os.X_OK):
@@ -97,13 +119,16 @@ def main():
         f"Using full images for the web with dimension ({img_width_max}, {img_height_max})."
     )
 
+    thumbnail_width_max = thumbnail_img_width_max
+    thumbnail_height_max = thumbnail_img_height_max
+
     if use_thumbnails:
         outsubdirs["thumbnails"] = os.path.join(outdir, outdir_subdir_thumbnails)
         logger.info(
             f"Using thumbnails with dimension ({thumbnail_width_max}, {thumbnail_height_max})."
         )
     else:
-        logger.info(f"Not using thumbnails.")
+        logger.info("Not using thumbnails.")
 
     for subdirname in outsubdirs.keys():
         sub_outdir = outsubdirs.get(subdirname)
@@ -121,7 +146,7 @@ def main():
         logger.info("Sorting the images by aspect ratio.")
         image_filenames = sort_filenames_by_aspect_ratio(image_filenames)
 
-    if not len(image_filenames) > 0:
+    if len(image_filenames) == 0:
         logger.warning("No images found, please check the input directory setting.")
 
     web_image_filenames: List[str] = get_output_paths(
@@ -153,6 +178,8 @@ def main():
     logger.info(
         f"Web gallery page for {len(image_filenames)} images written to file '{output_html_file}'"
     )
+
+    return output_html_file
 
 
 if __name__ == "__main__":
