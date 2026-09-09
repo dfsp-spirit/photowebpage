@@ -70,7 +70,13 @@ def _calculate_aspect(width: int, height: int) -> Tuple[int, int]:
 
 def sort_filenames_by_aspect_ratio(image_paths: List[str]) -> List[str]:
     """
-    Sort image filenames by aspect ratio of the image. Useful for the gallery because it looks bad if there is a random order of portrait format and landscape format images in the gallery. It looks much better if all portrait format images are followed by all landscape format images, or vice versa.
+    Sort image filenames by the aspect ratio of the image, from portrait to landscape format.
+
+    Images with a portrait orientation (height > width) are listed first, followed by
+    square images and finally images with a landscape orientation (width > height). This
+    looks much better than a random order of portrait and landscape images in the gallery,
+    because all images with a similar orientation end up grouped together.
+
     @param image_paths: list of input image filenames. The images will be opened to check for dimensions and compute their aspect ratio, so the filenames must be valid image files.
     @return list of image filenames, containing the filenames from image_paths, but (potentially) in a different order.
     """
@@ -89,10 +95,10 @@ def sort_filenames_by_aspect_ratio(image_paths: List[str]) -> List[str]:
             }
         )
 
-    images.sort(key=lambda x: x["aspect_ratio"][0])  # Sort by width
-    images.sort(
-        key=lambda x: x["aspect_ratio"][1]
-    )  # Sort by height within width order, works due to stable sort
+    # Sort from portrait to landscape by numeric aspect ratio (width / height):
+    # all portrait images first, then square images, then landscape ones.
+    # Images sharing the same aspect ratio stay grouped together.
+    images.sort(key=lambda x: x["width"] / x["height"])
 
     if logger.isEnabledFor(logging.INFO):
         aspect_ratios = [i["aspect_ratio"] for i in images]
